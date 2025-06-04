@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 
 public class TicketRequest {
-    private String customerId;
+    //private String customerId;
     private String flightId;
     private String arrival;
     private String departure;

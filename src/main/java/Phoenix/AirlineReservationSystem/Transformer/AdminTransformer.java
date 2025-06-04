@@ -3,14 +3,18 @@ package Phoenix.AirlineReservationSystem.Transformer;
 import Phoenix.AirlineReservationSystem.Dto.Request.AdminRequest;
 import Phoenix.AirlineReservationSystem.Dto.Response.AdminResponse;
 import Phoenix.AirlineReservationSystem.Model.Admin;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class AdminTransformer {
+    private static final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
     public static Admin adminRequestToAdmin(AdminRequest adminRequest){
         return Admin.builder()
                 .firstName(adminRequest.getFirstName())
                 .lastName(adminRequest.getLastName())
                 .username(adminRequest.getUsername())
-                .password(adminRequest.getPassword())
+                .password(passwordEncoder.encode(adminRequest.getPassword()))
+                .role("admin")
                 .build();
     }
     public static AdminResponse adminToAdminResponse(Admin admin){
@@ -18,6 +22,8 @@ public class AdminTransformer {
                 .firstName(admin.getFirstName())
                 .lastName(admin.getLastName())
                 .username(admin.getUsername())
+                .password(admin.getPassword())
+                .role(admin.getRole())
                 .build();
     }
     public static void updateAdminFromRequest(Admin admin, AdminRequest request) {
@@ -31,7 +37,7 @@ public class AdminTransformer {
             admin.setUsername(request.getUsername());
         }
         if (request.getPassword() != null) {
-            admin.setPassword(request.getPassword());
+            admin.setPassword(passwordEncoder.encode(request.getPassword()));
         }
     }
 }

@@ -6,6 +6,8 @@ import Phoenix.AirlineReservationSystem.Exceptions.ResourceNotFoundException;
 import Phoenix.AirlineReservationSystem.Model.Admin;
 import Phoenix.AirlineReservationSystem.Repository.AdminRepo;
 import Phoenix.AirlineReservationSystem.Transformer.AdminTransformer;
+import Phoenix.AirlineReservationSystem.Utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,17 +22,25 @@ public class AdminService {
 
     @Autowired
     AdminRepo adminRepo;
+    @Autowired
+    JwtUtil jwtUtil;
     public AdminResponse addAdmin(AdminRequest adminRequest){
         Admin admin= AdminTransformer.adminRequestToAdmin(adminRequest);
         Admin newAdmin=adminRepo.save(admin);
         return AdminTransformer.adminToAdminResponse(newAdmin);
     }
-    public AdminResponse getAdimn(int id){
-        Optional<Admin> admin=adminRepo.findByAdminId(id);
-        if(admin.isEmpty()){
+    public AdminResponse getAdimn(HttpServletRequest request){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
+        String username= jwtUtil.extractUsername(token);
+        Admin admin=adminRepo.findByUsername(username);
+        if(admin==null){
             throw  new ResourceNotFoundException("Admin not found");
         }
-        AdminResponse adminResponse=AdminTransformer.adminToAdminResponse(admin.get());
+        AdminResponse adminResponse=AdminTransformer.adminToAdminResponse(admin);
         return  adminResponse;
     }
     public Page<AdminResponse> getAllAdmin(int page,int size){
@@ -50,14 +60,19 @@ public class AdminService {
 
     }
     @Transactional
-    public AdminResponse updateAdmin(int id,AdminRequest adminRequest){
-        Optional<Admin> admin=adminRepo.findByAdminId(id);
-        if(admin.isEmpty()){
+    public AdminResponse updateAdmin(HttpServletRequest request,AdminRequest adminRequest){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
+        String username= jwtUtil.extractUsername(token);
+        Admin admin=adminRepo.findByUsername(username);
+        if(admin==null){
             throw  new ResourceNotFoundException("Admin not found");
         }
-        Admin adminData=admin.get();
-        AdminTransformer.updateAdminFromRequest(adminData,adminRequest);
-        adminRepo.save(adminData);
-        return AdminTransformer.adminToAdminResponse(adminData);
+        AdminTransformer.updateAdminFromRequest(admin,adminRequest);
+        adminRepo.save(admin);
+        return AdminTransformer.adminToAdminResponse(admin);
     }
 }

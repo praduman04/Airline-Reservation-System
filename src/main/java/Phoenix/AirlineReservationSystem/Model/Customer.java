@@ -2,6 +2,7 @@ package Phoenix.AirlineReservationSystem.Model;
 
 import Phoenix.AirlineReservationSystem.Enums.Gender;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,10 @@ public class Customer {
 
    @Id
     private String customerId;
+   @Column(nullable = false,unique = true)
+   private String username;
+   @Column(nullable = false)
+   private String password;
     @Column(nullable = false)
     private String firstName;
     private String lastName;
@@ -31,9 +36,11 @@ public class Customer {
     private int contact;
     @Enumerated(value = EnumType.STRING)
     private Gender gender;
+    private String role;
    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date dob;
  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
  @JoinColumn(name = "customer_id")
+ @JsonManagedReference
     List<Ticket> tickets=new ArrayList<>();
 }

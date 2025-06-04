@@ -11,6 +11,7 @@ public interface CustomerRepo extends JpaRepository<Customer,String> {
     Customer findTopByOrderByCustomerIdDesc();
     Optional<Customer> findByCustomerId(String id);
 
-    void deleteByCustomerId(String customerId);
+    void deleteByUsername(String username);
+    Customer findByUsername(String username);
 
 }

@@ -4,6 +4,7 @@ import Phoenix.AirlineReservationSystem.Dto.Request.CustomerRequest;
 import Phoenix.AirlineReservationSystem.Dto.Response.CustomerResponse;
 import Phoenix.AirlineReservationSystem.Model.Customer;
 import Phoenix.AirlineReservationSystem.Services.CustomerService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -13,18 +14,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("api/v1/customer")
 public class CustomerController {
     @Autowired
     CustomerService customerService;
-    @PostMapping("/addCustomer")
+    @PostMapping("/signup")
     public ResponseEntity<CustomerResponse> addCustomer(@RequestBody CustomerRequest customerRequest){
         CustomerResponse customer=customerService.addCustomer(customerRequest);
         return new ResponseEntity<>(customer, HttpStatus.CREATED);
     }
-    @GetMapping("/getById")
-    public ResponseEntity<CustomerResponse>getByCustomerId(@RequestParam("customerId") String customerId){
-        CustomerResponse customerResponse=customerService.getByCustomerId(customerId);
+    @GetMapping("/get")
+    public ResponseEntity<CustomerResponse>getByCustomerId(HttpServletRequest request){
+        CustomerResponse customerResponse=customerService.getByCustomerId(request);
         return new ResponseEntity<>(customerResponse,HttpStatus.OK);
     }
     @GetMapping("/getAllCustomer")
@@ -33,13 +34,13 @@ public class CustomerController {
         return new ResponseEntity<>(list,HttpStatus.OK);
     }
     @DeleteMapping("/delete")
-    public ResponseEntity<CustomerResponse>deleteCustomer(@RequestParam("customerId") String customerId){
-        CustomerResponse customerResponse=customerService.deleteCustomer(customerId);
+    public ResponseEntity<CustomerResponse>deleteCustomer(HttpServletRequest request){
+        CustomerResponse customerResponse=customerService.deleteCustomer(request);
         return new ResponseEntity<>(customerResponse,HttpStatus.OK);
     }
     @PutMapping("/update")
-    public ResponseEntity<CustomerResponse>updateCustomer(@RequestParam String customerId,@RequestBody CustomerRequest customerRequest){
-        CustomerResponse customerResponse=customerService.updateCustomer(customerId,customerRequest);
+    public ResponseEntity<CustomerResponse>updateCustomer(HttpServletRequest request,@RequestBody CustomerRequest customerRequest){
+        CustomerResponse customerResponse=customerService.updateCustomer(request,customerRequest);
         return new ResponseEntity<>(customerResponse,HttpStatus.ACCEPTED);
     }
 }

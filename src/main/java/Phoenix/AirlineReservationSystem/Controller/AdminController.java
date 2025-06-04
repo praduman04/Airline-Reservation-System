@@ -4,6 +4,7 @@ import Phoenix.AirlineReservationSystem.Dto.Request.AdminRequest;
 import Phoenix.AirlineReservationSystem.Dto.Response.AdminResponse;
 import Phoenix.AirlineReservationSystem.Model.Admin;
 import Phoenix.AirlineReservationSystem.Services.AdminService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("api/v1/admin")
 public class AdminController {
     @Autowired
     AdminService adminService;
@@ -21,9 +22,9 @@ public class AdminController {
         return new ResponseEntity<>(adminResponse, HttpStatus.CREATED);
     }
 
-    @GetMapping("/getById")
-    public ResponseEntity<AdminResponse>getAdminById(@RequestParam int adminId){
-        AdminResponse adminResponse=adminService.getAdimn(adminId);
+    @GetMapping("/get")
+    public ResponseEntity<AdminResponse>getAdminById(HttpServletRequest request){
+        AdminResponse adminResponse=adminService.getAdimn(request);
         return new ResponseEntity<>(adminResponse,HttpStatus.OK);
     }
     @GetMapping("/getAll")
@@ -38,8 +39,8 @@ public class AdminController {
         return new ResponseEntity<>(adminResponse,HttpStatus.OK);
     }
     @PutMapping("/update")
-    public ResponseEntity<AdminResponse>updateAdmin(@RequestParam int adminId,@RequestBody AdminRequest adminRequest){
-        AdminResponse adminResponse=adminService.updateAdmin(adminId,adminRequest);
+    public ResponseEntity<AdminResponse>updateAdmin(HttpServletRequest request,@RequestBody AdminRequest adminRequest){
+        AdminResponse adminResponse=adminService.updateAdmin(request,adminRequest);
         return new ResponseEntity<>(adminResponse,HttpStatus.ACCEPTED);
     }
 }

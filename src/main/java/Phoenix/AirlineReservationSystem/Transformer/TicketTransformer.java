@@ -2,8 +2,6 @@ package Phoenix.AirlineReservationSystem.Transformer;
 
 import Phoenix.AirlineReservationSystem.Dto.Request.TicketRequest;
 import Phoenix.AirlineReservationSystem.Dto.Response.TicketResponse;
-import Phoenix.AirlineReservationSystem.Model.Customer;
-import Phoenix.AirlineReservationSystem.Model.Flight;
 import Phoenix.AirlineReservationSystem.Model.Ticket;
 
 public class TicketTransformer {
@@ -13,7 +11,7 @@ public class TicketTransformer {
                 .departure(ticketRequest.getDeparture())
                 .build();
     }
-    public static TicketResponse ticketToTicketResponse(Ticket ticket,Flight flight,Customer customer){
+    public static TicketResponse ticketToTicketResponse(Ticket ticket){
         return TicketResponse.builder()
                 .ticketId(ticket.getTicketId())
                 .flightId(ticket.getFlight().getFlightId())
@@ -21,7 +19,7 @@ public class TicketTransformer {
                 .date(ticket.getFlight().getDate())
                 .arrival(ticket.getArrival())
                 .departure(ticket.getDeparture())
-                .customerName(customer.getFirstName()+customer.getLastName())
+                .customerName(ticket.getCustomer().getFirstName()+" "+ticket.getCustomer().getLastName())
                 .build();
     }
 }

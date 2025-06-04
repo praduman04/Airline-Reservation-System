@@ -3,10 +3,15 @@ package Phoenix.AirlineReservationSystem.Transformer;
 import Phoenix.AirlineReservationSystem.Dto.Request.CustomerRequest;
 import Phoenix.AirlineReservationSystem.Dto.Response.CustomerResponse;
 import Phoenix.AirlineReservationSystem.Model.Customer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class CustomerTransformer {
+    private static final PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
     public static Customer customerRequestToCustomer(CustomerRequest customerRequest){
         return Customer.builder()
+                .username(customerRequest.getUsername())
+                .password(passwordEncoder.encode(customerRequest.getPassword()))
                 .firstName(customerRequest.getFirstName())
                 .lastName(customerRequest.getLastName())
                 .passport(customerRequest.getPassport())
@@ -15,10 +20,13 @@ public class CustomerTransformer {
                 .contact(customerRequest.getContact())
                 .gender(customerRequest.getGender())
                 .dob(customerRequest.getDob())
+                .role("user")
                 .build();
     }
     public static CustomerResponse customerToCustomerResponse(Customer customer){
         return CustomerResponse.builder()
+                .username(customer.getUsername())
+                .password(customer.getPassword())
                 .customerId(customer.getCustomerId())
                 .firstName(customer.getFirstName())
                 .lastName(customer.getLastName())
@@ -28,9 +36,16 @@ public class CustomerTransformer {
                 .contact(customer.getContact())
                 .gender(customer.getGender())
                 .dob(customer.getDob())
+                .role(customer.getRole())
                 .build();
     }
     public static void updateCustomerFromRequest(Customer customer, CustomerRequest request) {
+        if(request.getUsername()!=null){
+            customer.setUsername(request.getUsername());
+        }
+        if(request.getPassword()!=null){
+            customer.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         if (request.getFirstName() != null) {
             customer.setFirstName(request.getFirstName());
         }

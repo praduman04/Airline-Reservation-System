@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 
 @RestController
-@RequestMapping("/flight")
+@RequestMapping("api/v1/flight")
 public class FlightController {
     @Autowired
     FlightService flightService;
@@ -41,7 +41,7 @@ public class FlightController {
 
     }
     @GetMapping("/search")
-    public ResponseEntity<Page<Flight>> searchFlight(
+    public ResponseEntity<Page<FlightResponse>> searchFlight(
             @RequestParam(required = false) String departure,
             @RequestParam(required = false) String arrival,
             @RequestParam(required = false)
@@ -49,7 +49,7 @@ public class FlightController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<Flight> list = flightService.searchFlight(departure, arrival, date, page, size);
+        Page<FlightResponse> list = flightService.searchFlight(departure, arrival, date, page, size);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 }

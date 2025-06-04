@@ -61,11 +61,12 @@ public class FlightService {
        // return adminPage.map(AdminTransformer::adminToAdminResponse);
         return list.map(FlightTransformer::flightToFlightResponse);
     }
-   public Page<Flight> searchFlight(String departure, String arrival, Date date, int page,int size){
+   public Page<FlightResponse> searchFlight(String departure, String arrival, Date date, int page,int size){
         Pageable pageable=PageRequest.of(page,size);
        if (departure != null && departure.trim().isEmpty()) departure = null;
        if (arrival != null && arrival.trim().isEmpty()) arrival = null;
-       return flightRepo.searchFlights(departure,arrival,date,pageable);
+       Page<Flight>list=flightRepo.searchFlights(departure,arrival,date,pageable);
+       return list.map(FlightTransformer::flightToFlightResponse);
    }
 
 }

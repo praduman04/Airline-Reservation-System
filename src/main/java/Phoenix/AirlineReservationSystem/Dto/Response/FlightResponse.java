@@ -15,6 +15,7 @@ public class FlightResponse {
     private String departure;
     private String duration;
     private int seats;
+    private int availableSeats;
     private double fare;
     private Date date;
 }

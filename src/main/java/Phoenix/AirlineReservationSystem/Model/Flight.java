@@ -1,5 +1,6 @@
 package Phoenix.AirlineReservationSystem.Model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,5 +31,6 @@ public class Flight {
     private Date date;
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "flight_id")
+    @JsonManagedReference
     List<Ticket>tickets=new ArrayList<>();
 }

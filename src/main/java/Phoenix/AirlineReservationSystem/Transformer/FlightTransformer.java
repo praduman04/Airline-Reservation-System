@@ -23,6 +23,7 @@ public class FlightTransformer {
                 .departure(flight.getDeparture())
                 .duration(flight.getDuration())
                 .seats(flight.getSeats())
+                .availableSeats(flight.getSeats()-flight.getTickets().size())
                 .fare(flight.getFare())
                 .date(flight.getDate())
                 .build();

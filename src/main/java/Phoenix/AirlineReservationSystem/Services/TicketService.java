@@ -2,6 +2,7 @@ package Phoenix.AirlineReservationSystem.Services;
 
 import Phoenix.AirlineReservationSystem.Dto.Request.TicketRequest;
 import Phoenix.AirlineReservationSystem.Dto.Response.TicketResponse;
+import Phoenix.AirlineReservationSystem.Exceptions.AccessDeniedException;
 import Phoenix.AirlineReservationSystem.Exceptions.ResourceNotFoundException;
 import Phoenix.AirlineReservationSystem.Model.Customer;
 import Phoenix.AirlineReservationSystem.Model.Flight;
@@ -10,9 +11,15 @@ import Phoenix.AirlineReservationSystem.Repository.CustomerRepo;
 import Phoenix.AirlineReservationSystem.Repository.FlightRepo;
 import Phoenix.AirlineReservationSystem.Repository.TicketRepo;
 import Phoenix.AirlineReservationSystem.Transformer.TicketTransformer;
+import Phoenix.AirlineReservationSystem.Utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
 
@@ -24,6 +31,8 @@ public class TicketService {
     CustomerRepo customerRepo;
     @Autowired
     FlightRepo flightRepo;
+    @Autowired
+    JwtUtil jwtUtil;
     private String generateTicketId() {
         Ticket lastTicket = ticketRepo.findTopByOrderByTicketIdDesc();
 
@@ -35,48 +44,85 @@ public class TicketService {
 
         return String.format("TK%03d", nextId); // CS001, CS002, etc.
     }
-    public TicketResponse bookTicket(TicketRequest ticketRequest){
+    public TicketResponse bookTicket(TicketRequest ticketRequest,HttpServletRequest request){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
+        String username=jwtUtil.extractUsername(token);
 
+        Customer customer=customerRepo.findByUsername(username);
+        if(customer==null){
+            throw  new ResourceNotFoundException("Customer Not Found");
+        }
         Optional<Flight>flight=flightRepo.findByFlightId(ticketRequest.getFlightId());
         if(flight.isEmpty()){
             throw new ResourceNotFoundException("Flight Not Found");
         }
-        Optional<Customer> customer=customerRepo.findByCustomerId(ticketRequest.getCustomerId());
-        if(customer.isEmpty()){
-            throw  new ResourceNotFoundException("Customer Not Found");
-        }
-
         Ticket ticket= TicketTransformer.ticketRequestToTicket(ticketRequest);
         ticket.setTicketId(generateTicketId());
-        ticket.setCustomer(customer.get());
+        ticket.setCustomer(customer);
         ticket.setFlight(flight.get());
-        int seats=flight.get().getSeats();
-        flight.get().setSeats(seats-1);
-        flightRepo.save(flight.get());
-        ticketRepo.save(ticket);
-        return TicketTransformer.ticketToTicketResponse(ticket,flight.get(),customer.get());
+
+       Ticket savedTicket= ticketRepo.save(ticket);
+        return TicketTransformer.ticketToTicketResponse(savedTicket);
     }
-    public TicketResponse getTicketById(String id){
+    public TicketResponse getTicketById(String id, HttpServletRequest request){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
         Optional<Ticket> ticket=ticketRepo.findById(id);
+
+        String role=jwtUtil.extractRoles(token).get(0);
+
+        String username=jwtUtil.extractUsername(token);
+        if(!role.equals("admin") && !ticket.get().getCustomer().getUsername().equals(username)){
+            throw new AccessDeniedException("You are not authorized to view this ticket.");
+        }
         if(ticket.isEmpty()){
             throw new ResourceNotFoundException("Ticket Not Found");
         }
-        return TicketTransformer.ticketToTicketResponse(ticket.get(),ticket.get().getFlight(),ticket.get().getCustomer());
+
+        return TicketTransformer.ticketToTicketResponse(ticket.get());
 
     }
     @Transactional
-    public TicketResponse cancelTicket(String Id){
+    public TicketResponse cancelTicket(String Id,HttpServletRequest request){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
         Optional<Ticket> ticket=ticketRepo.findById(Id);
+        String role=jwtUtil.extractRoles(token).get(0);
+
+        String username=jwtUtil.extractUsername(token);
+        if(!role.equals("admin") && !ticket.get().getCustomer().getUsername().equals(username)){
+            throw new AccessDeniedException("You are not authorized to view this ticket.");
+        }
         if(ticket.isEmpty()){
             throw new ResourceNotFoundException("Ticket Not Found");
         }
         ticketRepo.delete(ticket.get());
-        Flight flight=ticket.get().getFlight();
-        int seats=flight.getSeats();
-        flight.setSeats(seats+1);
-        flightRepo.save(flight);
-        return TicketTransformer.ticketToTicketResponse(ticket.get(),ticket.get().getFlight(),ticket.get().getCustomer());
-
-
+        return TicketTransformer.ticketToTicketResponse(ticket.get());
+    }
+    public Page<TicketResponse> listAllTicketByFlightId(int page, int size, String flightId) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Ticket> list = ticketRepo.findByFlight_FlightId(flightId, pageable);
+        return list.map(TicketTransformer::ticketToTicketResponse);
+    }
+    public Page<TicketResponse>listAllTicketByCustomer(int page,int size,HttpServletRequest request){
+         String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
+        String username=jwtUtil.extractUsername(token);
+        Pageable pageable=PageRequest.of(page,size);
+        Page<Ticket>list=ticketRepo.findByCustomer_Username(username, pageable);
+        return list.map(TicketTransformer::ticketToTicketResponse);
     }
 }

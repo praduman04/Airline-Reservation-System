@@ -20,4 +20,5 @@ public class Admin {
     private String username;
     @Column(unique = true,nullable = false)
     private String password;
+    private String role;
 }

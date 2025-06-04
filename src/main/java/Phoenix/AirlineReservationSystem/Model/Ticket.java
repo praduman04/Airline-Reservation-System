@@ -1,5 +1,6 @@
 package Phoenix.AirlineReservationSystem.Model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,9 +15,11 @@ public class Ticket {
     private String ticketId;
     @ManyToOne
     @JoinColumn(name = "flight_id")
+    @JsonBackReference
     private Flight flight;
     @ManyToOne
     @JoinColumn(name = "customer_id")
+    @JsonBackReference
     private Customer customer;
     private String arrival;
     private  String departure;

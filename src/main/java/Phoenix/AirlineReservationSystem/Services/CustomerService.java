@@ -6,6 +6,8 @@ import Phoenix.AirlineReservationSystem.Exceptions.ResourceNotFoundException;
 import Phoenix.AirlineReservationSystem.Model.Customer;
 import Phoenix.AirlineReservationSystem.Repository.CustomerRepo;
 import Phoenix.AirlineReservationSystem.Transformer.CustomerTransformer;
+import Phoenix.AirlineReservationSystem.Utils.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +21,8 @@ import java.util.Optional;
 public class CustomerService {
     @Autowired
     CustomerRepo customerRepo;
+    @Autowired
+    JwtUtil jwtUtil;
     private String generateCustomerId() {
         Customer lastCustomer = customerRepo.findTopByOrderByCustomerIdDesc();
 
@@ -36,12 +40,16 @@ public class CustomerService {
         Customer addedCustomer=customerRepo.save(customer);
         return CustomerTransformer.customerToCustomerResponse(addedCustomer);
     }
-    public CustomerResponse getByCustomerId(String id){
-        Optional<Customer>customer=customerRepo.findByCustomerId(id);
-        if(customer.isEmpty()){
-            throw  new ResourceNotFoundException("Customer Not Found.");
+    public CustomerResponse getByCustomerId(HttpServletRequest request){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
         }
-        CustomerResponse customerResponse=CustomerTransformer.customerToCustomerResponse(customer.get());
+        String token=authHeader.substring(7);
+        String username= jwtUtil.extractUsername(token);
+        Customer customer=customerRepo.findByUsername(username);
+        if(customer==null)throw new ResourceNotFoundException("Customer Not Found");
+        CustomerResponse customerResponse=CustomerTransformer.customerToCustomerResponse(customer);
         return customerResponse ;
     }
     public Page<CustomerResponse> getAllCustomer(int page,int size){
@@ -50,28 +58,31 @@ public class CustomerService {
         return list.map(CustomerTransformer::customerToCustomerResponse);
 
     }
-    public CustomerResponse updateCustomer(CustomerRequest customerRequest,String customerId){
-        Optional<Customer> customer=customerRepo.findByCustomerId(customerId);
-        if(customer.isEmpty())throw new ResourceNotFoundException("Customer Not Found");
-        Customer existingCustomer=customer.get();
 
-        Customer updatedCustomer=customerRepo.save(customer.get());
-        return CustomerTransformer.customerToCustomerResponse(updatedCustomer);
+    @Transactional
+    public  CustomerResponse deleteCustomer(HttpServletRequest request){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
+        String username= jwtUtil.extractUsername(token);
+        Customer customer=customerRepo.findByUsername(username);
+        if(customer==null)throw new ResourceNotFoundException("Customer Not Found");
+        customerRepo.deleteByUsername(username);
+        return CustomerTransformer.customerToCustomerResponse(customer);
 
     }
     @Transactional
-    public  CustomerResponse deleteCustomer(String customerId){
-        Optional<Customer> customer=customerRepo.findByCustomerId(customerId);
-        if(customer.isEmpty())throw new ResourceNotFoundException("Customer Not Found");
-        customerRepo.deleteByCustomerId(customerId);
-        return CustomerTransformer.customerToCustomerResponse(customer.get());
-
-    }
-    @Transactional
-    public CustomerResponse updateCustomer(String customerId,CustomerRequest customerRequest){
-        Optional<Customer> customerOp=customerRepo.findByCustomerId(customerId);
-        if(customerOp.isEmpty())throw new ResourceNotFoundException("Customer Not Found");
-        Customer customer=customerOp.get();
+    public CustomerResponse updateCustomer(HttpServletRequest request,CustomerRequest customerRequest){
+        String authHeader= request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header.");
+        }
+        String token=authHeader.substring(7);
+        String username= jwtUtil.extractUsername(token);
+        Customer customer=customerRepo.findByUsername(username);
+        if(customer==null)throw new ResourceNotFoundException("Customer Not Found");
         CustomerTransformer.updateCustomerFromRequest(customer,customerRequest);
         Customer updateCustomer= customerRepo.save(customer);
 
