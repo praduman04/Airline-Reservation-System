@@ -59,11 +59,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
     return http.build();
 }
-//    @Bean
-//    public UserDetailsService userDetailsService(){
-//        return new CustomUserDetailsService();
-//
-//    }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
