@@ -48,7 +48,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .requestMatchers("/api/v1/customer/signup").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/admin/addAdmin").permitAll()
-                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui.html","/swagger-ui/**","/v3/api-docs/**","/v3/api-docs.yaml", "/swagger-resources/**","/webjars/**").permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("admin")
             .requestMatchers("/api/v1/flight/delete").hasRole("admin")
             .requestMatchers("/api/v1/flight/add").hasRole("admin")

@@ -20,7 +20,7 @@ import java.util.List;
 public class CustomerController {
     @Autowired
     CustomerService customerService;
-    @PostMapping("/signup")
+    @PostMapping("/signUp")
     public ResponseEntity<CustomerResponse> addCustomer(@RequestBody CustomerRequest customerRequest){
         CustomerResponse customer=customerService.addCustomer(customerRequest);
         return new ResponseEntity<>(customer, HttpStatus.CREATED);
