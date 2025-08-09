@@ -4,6 +4,8 @@ import Phoenix.AirlineReservationSystem.Dto.Request.CustomerRequest;
 import Phoenix.AirlineReservationSystem.Dto.Response.CustomerResponse;
 import Phoenix.AirlineReservationSystem.Model.Customer;
 import Phoenix.AirlineReservationSystem.Services.CustomerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,7 @@ public class CustomerController {
         CustomerResponse customer=customerService.addCustomer(customerRequest);
         return new ResponseEntity<>(customer, HttpStatus.CREATED);
     }
+   
     @GetMapping("/get")
     public ResponseEntity<CustomerResponse>getByCustomerId(HttpServletRequest request){
         CustomerResponse customerResponse=customerService.getByCustomerId(request);
