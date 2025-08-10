@@ -45,7 +45,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             }))
         .csrf(csrf -> csrf.disable())  // Disable CSRF (only okay for non-browser clients or APIs)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/v1/customer/signup").permitAll()
+            .requestMatchers("/api/v1/customer/signUp").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/admin/addAdmin").permitAll()
                 .requestMatchers("/swagger-ui.html","/swagger-ui/**","/v3/api-docs/**","/v3/api-docs.yaml", "/swagger-resources/**","/webjars/**").permitAll()
